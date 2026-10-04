@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgentBreak
 
-## Getting Started
+AI-agent red-teaming and security assessment workbench (POC).
 
-First, run the development server:
+Evaluate LLM agent profiles against prompt injection, system-prompt extraction, indirect injection, tool abuse, privilege escalation, data exfiltration, memory poisoning, and MCP attack surfaces — combining real OpenAI-based adversarial tests with deterministic simulated modules and automated risk scoring/reporting.
+
+## Stack
+
+Next.js · React · TypeScript · OpenAI · Prisma · SQLite · Zod · Tailwind · shadcn/ui · Recharts
+
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env
+npx prisma migrate dev
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The dashboard is populated immediately from seed data (3 agents, historical assessments, findings, reports).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Demo Mode vs Live AI Tests
 
-## Learn More
+| Condition | Mode | Behavior |
+|-----------|------|----------|
+| No `OPENAI_API_KEY` | **Demo Mode** | App fully works. REAL attack modules use deterministic demo results. |
+| `OPENAI_API_KEY` set | **Live AI Tests** | Direct Prompt Injection + System Prompt Extraction call OpenAI. |
 
-To learn more about Next.js, take a look at the following resources:
+Never expose the API key to the browser. Configure:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+DATABASE_URL="file:./dev.db"
+OPENAI_API_KEY=""
+OPENAI_MODEL="gpt-4o-mini"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Next.js dev server |
+| `npm run build` | Production build |
+| `npm run db:seed` | Reseed demo data (idempotent wipe + seed) |
+| `npm run db:migrate` | Run Prisma migrations |
+| `npm run lint` | ESLint |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Demo flow (3–5 min)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Overview** — security posture, KPIs, recent assessments  
+2. **Agents → Customer Support Agent** — tools, system prompt, attack surface  
+3. **Run Security Assessment** — watch live attack execution  
+4. **Open a critical finding** — e.g. indirect prompt injection  
+5. **Security Report** — score, success rates, remediations  
+
+## Attack coverage
+
+- **REAL:** Direct Prompt Injection, System Prompt Extraction  
+- **SIMULATED:** Indirect Injection, Tool Abuse, Privilege Escalation, Data Exfiltration, Memory Poisoning, MCP Manipulation  
+- **Coming soon:** Excessive Agency, Context Poisoning, Cost Amplification, Cross-Agent Attacks, and more (see Attack Library)
+
+## Project structure
+
+```
+app/           # Screens + API routes
+components/    # UI by domain
+lib/security/  # Attack modules, scoring, orchestrator
+lib/openai/    # OpenAI client + demo-mode fallback
+prisma/        # Schema + seed
+```
+
+## Security boundary
+
+AgentBreak only tests user-provided agent profiles with synthetic prompts, documents, and mock tools. It does not target arbitrary external systems.
+
+## License
+
+MIT (portfolio POC)

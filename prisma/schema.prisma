@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id                   String       @id @default(cuid())
+  name                 String
+  description          String
+  model                String
+  systemPrompt         String
+  memoryEnabled        Boolean      @default(false)
+  toolsJson            String       @default("[]")
+  knowledgeSourcesJson String       @default("[]")
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  assessments          Assessment[]
+}
+
+model Assessment {
+  id            String            @id @default(cuid())
+  agentId       String
+  agent         Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status        String            @default("DRAFT")
+  securityScore Int?
+  riskLevel     String?
+  attackTypes   String            @default("[]")
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  executions    AttackExecution[]
+  findings      Finding[]
+  report        Report?
+}
+
+model AttackExecution {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  attackType   String
+  attackName   String
+  mode         String
+  status       String     @default("QUEUED")
+  severity     String?
+  attackSuccess Float?
+  confidence   Float?
+  evidence     String?
+  payload      String?
+  durationMs   Int?
+  createdAt    DateTime   @default(now())
+  finding      Finding?
+}
+
+model Finding {
+  id                String           @id @default(cuid())
+  assessmentId      String
+  assessment        Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  attackExecutionId String?          @unique
+  attackExecution   AttackExecution? @relation(fields: [attackExecutionId], references: [id], onDelete: SetNull)
+  title             String
+  severity          String
+  description       String
+  impact            String
+  recommendation    String
+  createdAt         DateTime         @default(now())
+}
+
+model Report {
+  id               String     @id @default(cuid())
+  assessmentId     String     @unique
+  assessment       Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  executiveSummary String
+  reportJson       String     @default("{}")
+  createdAt        DateTime   @default(now())
+}
